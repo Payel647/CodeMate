@@ -8,10 +8,7 @@ Built with the **MERN Stack**, it provides real-time AI responses, a clean UI, a
 ##  Tech Stack
 
 **Frontend:**  
-- React.js  
-- TailwindCSS  
-- Axios  
-
+- React.js   
 **Backend:**  
 - Node.js  
 - Express.js  
