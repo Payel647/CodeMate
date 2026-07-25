@@ -1,6 +1,6 @@
 import express from "express";
-import Thread from "../models/Thread.js";
 import getOpenAIAPIResponse from "../utils/openai.js";
+import { deleteThreadById, getThreadMessages, listThreads, saveThreadChat } from "../utils/threadStore.js";
 
 const router = express.Router();
 
@@ -23,12 +23,11 @@ router.post("/test", async(req, res) => {
 //Get all threads
 router.get("/thread", async(req, res) => {
     try {
-        const threads = await Thread.find({}).sort({updatedAt: -1});
-        //descending order of updatedAt...most recent data on top
-        res.json(threads);
+        const threads = await listThreads();
+        return res.json(threads);
     } catch(err) {
         console.log(err);
-        res.status(500).json({error: "Failed to fetch threads"});
+        return res.status(500).json({error: "Failed to fetch threads", threads: []});
     }
 });
 
@@ -36,16 +35,16 @@ router.get("/thread/:threadId", async(req, res) => {
     const {threadId} = req.params;
 
     try {
-        const thread = await Thread.findOne({threadId});
+        const messages = await getThreadMessages(threadId);
 
-        if(!thread) {
-            res.status(404).json({error: "Thread not found"});
+        if (!messages.length) {
+            return res.status(404).json({error: "Thread not found", messages: []});
         }
 
-        res.json(thread.messages);
+        return res.json(messages);
     } catch(err) {
         console.log(err);
-        res.status(500).json({error: "Failed to fetch chat"});
+        return res.status(500).json({error: "Failed to fetch chat", messages: []});
     }
 });
 
@@ -53,17 +52,17 @@ router.delete("/thread/:threadId", async (req, res) => {
     const {threadId} = req.params;
 
     try {
-        const deletedThread = await Thread.findOneAndDelete({threadId});
+        const deletedThread = await deleteThreadById(threadId);
 
         if(!deletedThread) {
-            res.status(404).json({error: "Thread not found"});
+            return res.status(404).json({error: "Thread not found"});
         }
 
-        res.status(200).json({success : "Thread deleted successfully"});
+        return res.status(200).json({success : "Thread deleted successfully"});
 
     } catch(err) {
         console.log(err);
-        res.status(500).json({error: "Failed to delete thread"});
+        return res.status(500).json({error: "Failed to delete thread"});
     }
 });
 
@@ -71,33 +70,16 @@ router.post("/chat", async(req, res) => {
     const {threadId, message} = req.body;
 
     if(!threadId || !message) {
-        res.status(400).json({error: "missing required fields"});
+        return res.status(400).json({error: "missing required fields"});
     }
 
     try {
-        let thread = await Thread.findOne({threadId});
-
-        if(!thread) {
-            //create a new thread in Db
-            thread = new Thread({
-                threadId,
-                title: message,
-                messages: [{role: "user", content: message}]
-            });
-        } else {
-            thread.messages.push({role: "user", content: message});
-        }
-
         const assistantReply = await getOpenAIAPIResponse(message);
-
-        thread.messages.push({role: "assistant", content: assistantReply});
-        thread.updatedAt = new Date();
-
-        await thread.save();
-        res.json({reply: assistantReply});
+        const result = await saveThreadChat(threadId, message, assistantReply);
+        return res.json(result);
     } catch(err) {
         console.log(err);
-        res.status(500).json({error: "something went wrong"});
+        return res.status(500).json({error: "something went wrong"});
     }
 });
 

@@ -7,20 +7,21 @@ import chatRoutes from "./routes/chat.js";
 const app = express();
 const PORT = process.env.PORT || 8080;
 
-
 app.use(express.json());
 app.use(cors());
 app.use("/api", chatRoutes);
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-  connectDB();
-});
 
-const connectDB = async() => {
+const connectDB = async () => {
     try {
         await mongoose.connect(process.env.MONGODB_URI);
         console.log("Connected with Database!");
-    } catch(err) {
+    } catch (err) {
         console.log("Failed to connect with Db", err);
     }
-}
+};
+
+connectDB();
+
+app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+});

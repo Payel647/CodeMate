@@ -3,18 +3,50 @@ import { useContext, useEffect } from "react";
 import { MyContext } from "./MyContext.jsx";
 import {v1 as uuidv1} from "uuid";
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "";
+
 function Sidebar() {
     const {allThreads, setAllThreads, currThreadId, setNewChat, setPrompt, setReply, setCurrThreadId, setPrevChats} = useContext(MyContext);
 
+    const normalizeThreads = (payload) => {
+        if (Array.isArray(payload)) {
+            return payload;
+        }
+
+        if (payload && Array.isArray(payload.threads)) {
+            return payload.threads;
+        }
+
+        return [];
+    };
+
     const getAllThreads = async () => {
         try {
-            const response = await fetch("http://localhost:8080/api/thread");
-            const res = await response.json();
-            const filteredData = res.map(thread => ({threadId: thread.threadId, title: thread.title}));
-            //console.log(filteredData);
+            const response = await fetch(`${API_BASE_URL}/api/thread`);
+            const contentType = response.headers.get("content-type") || "";
+            let payload = null;
+
+            if (contentType.includes("application/json")) {
+                payload = await response.json();
+            } else {
+                payload = await response.text();
+            }
+
+            if (!response.ok) {
+                console.error("Failed to fetch threads:", payload);
+                setAllThreads([]);
+                return;
+            }
+
+            const filteredData = normalizeThreads(payload).map(thread => ({
+                threadId: thread.threadId || thread._id,
+                title: thread.title || "New Chat"
+            }));
+
             setAllThreads(filteredData);
         } catch(err) {
             console.log(err);
+            setAllThreads([]);
         }
     };
 
@@ -35,25 +67,42 @@ function Sidebar() {
         setCurrThreadId(newThreadId);
 
         try {
-            const response = await fetch(`http://localhost:8080/api/thread/${newThreadId}`);
-            const res = await response.json();
-            console.log(res);
-            setPrevChats(res);
+            const response = await fetch(`${API_BASE_URL}/api/thread/${newThreadId}`);
+            const contentType = response.headers.get("content-type") || "";
+            let payload = null;
+
+            if (contentType.includes("application/json")) {
+                payload = await response.json();
+            } else {
+                payload = await response.text();
+            }
+
+            if (!response.ok) {
+                console.error("Failed to fetch thread history:", payload);
+                setPrevChats([]);
+                setNewChat(false);
+                setReply(null);
+                return;
+            }
+
+            const messages = Array.isArray(payload) ? payload : payload?.messages || [];
+            setPrevChats(messages);
             setNewChat(false);
             setReply(null);
         } catch(err) {
             console.log(err);
+            setPrevChats([]);
         }
     }   
 
     const deleteThread = async (threadId) => {
         try {
-            const response = await fetch(`http://localhost:8080/api/thread/${threadId}`, {method: "DELETE"});
+            const response = await fetch(`${API_BASE_URL}/api/thread/${threadId}`, {method: "DELETE"});
             const res = await response.json();
             console.log(res);
 
             //updated threads re-render
-            setAllThreads(prev => prev.filter(thread => thread.threadId !== threadId));
+            setAllThreads(prev => Array.isArray(prev) ? prev.filter(thread => thread.threadId !== threadId) : []);
 
             if(threadId === currThreadId) {
                 createNewChat();

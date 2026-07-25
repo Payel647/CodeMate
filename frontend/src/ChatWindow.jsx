@@ -4,6 +4,8 @@ import { MyContext } from "./MyContext.jsx";
 import { useContext, useState, useEffect } from "react";
 import {ScaleLoader} from "react-spinners";
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "";
+
 function ChatWindow() {
     const {prompt, setPrompt, reply, setReply, currThreadId, setPrevChats, setNewChat} = useContext(MyContext);
     const [loading, setLoading] = useState(false);
@@ -26,12 +28,25 @@ function ChatWindow() {
         };
 
         try {
-            const response = await fetch("http://localhost:8080/api/chat", options);
-            const res = await response.json();
-            console.log(res);
-            setReply(res.reply);
+            const response = await fetch(`${API_BASE_URL}/api/chat`, options);
+            const contentType = response.headers.get("content-type") || "";
+            let payload = null;
+
+            if (contentType.includes("application/json")) {
+                payload = await response.json();
+            } else {
+                payload = await response.text();
+            }
+
+            if (!response.ok) {
+                console.error("Chat request failed:", payload);
+                setReply(payload?.error || "Something went wrong. Please try again.");
+            } else {
+                setReply(payload?.reply || "No reply received.");
+            }
         } catch(err) {
             console.log(err);
+            setReply("Something went wrong. Please try again.");
         }
         setLoading(false);
     }
@@ -58,12 +73,22 @@ function ChatWindow() {
         setIsOpen(!isOpen);
     }
 
+    const handleClearChat = () => {
+        setPrevChats([]);
+        setReply(null);
+        setNewChat(true);
+        setPrompt("");
+    }
+
     return (
         <div className="chatWindow">
             <div className="navbar">
                 <span>CodeMate <i className="fa-solid fa-chevron-down"></i></span>
-                <div className="userIconDiv" onClick={handleProfileClick}>
-                    <span className="userIcon"><i className="fa-solid fa-user"></i></span>
+                <div className="navbarActions">
+                    <button className="clearChatButton" onClick={handleClearChat}>Clear chat</button>
+                    <div className="userIconDiv" onClick={handleProfileClick}>
+                        <span className="userIcon"><i className="fa-solid fa-user"></i></span>
+                    </div>
                 </div>
             </div>
             {

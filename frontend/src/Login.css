@@ -1,0 +1,110 @@
+/* In Login.css */
+
+body, html {
+    font-family: 'Ubuntu', sans-serif;
+  margin: 0;
+  padding: 0;
+}
+
+.login-container {
+    background: linear-gradient(45deg, #ffebf4, #f8f0ff); /* Adjust the angle and colors as needed */
+    /* min-height: 100vh; */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #333;
+  display: flex;
+  width: 1200px;
+  margin: 100px auto;
+  border-radius: 12px;
+  justify-content: center;
+  align-items: center;
+}
+
+.left-column {
+    flex: 1;
+    height: 600px;
+    width: 400px;
+    background-size: cover; /* Ensure the background image covers the entire container */
+    background-position: center; /* Center the background image */
+    background-repeat: no-repeat;
+    border-top-left-radius: 12px;
+    border-bottom-left-radius: 12px;
+  }
+
+.right-column {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.login-box {
+  background-color: rgba(255, 255, 255, 0.8); /* Adjust the background color and transparency as needed */
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  max-width: 400px;
+  width: 100%;
+}
+
+.title {
+  color: #333;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.input {
+  margin-bottom: 15px;
+}
+
+.label {
+  margin-bottom: 5px;
+  display: block;
+}
+
+.input {
+  padding: 10px;
+  /* border: 1px solid #ddd; */
+  border-radius: 4px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.button {
+  padding: 10px;
+  background-color: #007BFF;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  width: 100%;
+  border-radius: 4px;
+}
+
+.error-message {
+  color: red;
+  margin-top: 5px;
+}
+
+/* In Login.css */
+
+/* ... (existing styles) */
+
+.input:hover {
+    border-color: #007BFF; /* Change border color on hover */
+  }
+  
+  .button:hover {
+    background-color: #0056b3; /* Darker background color on hover */
+  }
+  
+  /* Add a transition effect for smoother changes on hover */
+  .input, .button {
+    transition: all 0.3s ease;
+  }
+  
