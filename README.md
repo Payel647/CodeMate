@@ -29,7 +29,7 @@ CodeMate is a full-stack AI chat application built with React, Vite, Node.js, Ex
 ## Project Structure
 
 ```bash
-SigmaGpt/
+CodeMate/
 ├── Backend/
 │   ├── models/
 │   ├── routes/
